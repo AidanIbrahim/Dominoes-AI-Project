@@ -2,16 +2,20 @@ import pygame
 import constants
 
 class Domino:
-    def __init__(self, leftValue, rightValue, position=(0, 0)):
-        self.leftValue = leftValue
-        self.rightValue = rightValue
+    def __init__(self, values, position=(0, 0)):
+        self.leftValue = values[0] #Initialize values
+        self.rightValue = values[1]
+        self.score = self.leftValue + self.rightValue
+
         self.position = position
         self.rotation = 0  # Rotation angle, starts at 0 degrees
-        self.image = self.load_image()
+
+        self.image = self.load_image() #Initalize graphics
         self.image = pygame.transform.scale(self.image, (constants.TILE_WIDTH, constants.TILE_HEIGHT))
-        self.score = leftValue + rightValue
-        self.isSelected = False
         self.rect = self.image.get_rect(center=self.position)  # Store the rectangle for collision checks
+        
+
+        self.isSelected = False #This determines if the domino is selected
 
     def isDouble(self): #Returns true if the domino is a double
         if self.leftValue == self.rightValue:
@@ -24,6 +28,7 @@ class Domino:
 
     def deselect(self):
         self.isSelected = False
+
 
     def getScore(self): #Returns the score of the domino
         return self.score

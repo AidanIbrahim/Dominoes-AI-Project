@@ -1,7 +1,7 @@
 import pygame
 
 WIDTH, HEIGHT = 1366, 768 #Window Dimensions
-TILE_WIDTH, TILE_HEIGHT = 50, 100
+TILE_WIDTH, TILE_HEIGHT = 50, 100 #Domino dimensions
 FPS = 60 #Game framerate
 
 ALL_DOMINOES = [ #All dominoes in the game 
@@ -14,4 +14,6 @@ ALL_DOMINOES = [ #All dominoes in the game
     (6, 6)
 ]
 
-HAND_SIZE = 7
+HAND_SIZE = 7 #Size of hands on initial draw
+ 
+PLAYER_COUNT = 2 #Number of players in game, should always be 2 for now
