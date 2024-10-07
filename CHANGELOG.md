@@ -15,12 +15,12 @@
 - Implemented exporting data from simulations to excel
 - Added basic scoring (no special wins... yet)
 
-## [0.1.0] - 2024-09-20
-- Added basic game mechanics.
-- Implemented domino placement.
-
 ## [0.2.0] - 2024-10-01
 - Implemented legal moves, only allowing players to place tiles on matching suits
 - Implemented alternating turns
 - Redesigned architecture for stored players in game
 - Developed the random move AI.
+
+## [0.1.0] - 2024-09-20
+- Added basic game mechanics.
+- Implemented domino placement.
