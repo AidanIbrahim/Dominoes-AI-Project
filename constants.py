@@ -1,8 +1,9 @@
 import pygame
 
 WIDTH, HEIGHT = 1366, 768 #Window Dimensions
-TILE_WIDTH, TILE_HEIGHT = 50, 100 #Domino dimensions
-FPS = 60 #Game framerate
+TILE_WIDTH = 50 #Domino dimensions
+TILE_HEIGHT = TILE_WIDTH * 2
+FPS = 30 #Game framerate
 
 ALL_DOMINOES = [ #All dominoes in the game 
     (0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6),
@@ -17,3 +18,11 @@ ALL_DOMINOES = [ #All dominoes in the game
 HAND_SIZE = 7 #Size of hands on initial draw
  
 PLAYER_COUNT = 2 #Number of players in game, should always be 2 for now
+
+ALL_AIS = ["RandomMoves", "HighestFirst"] #List of all AI types
+
+SIM_NUM = 1000 #The number of matches per matchup
+
+EXPORT = False
+
+EXPORT_LOCATION = "Data/SimulationResults.xlsx"

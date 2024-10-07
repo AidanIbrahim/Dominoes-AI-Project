@@ -6,82 +6,137 @@ from domino import Domino
 
 class Snake:
     def __init__(self):
-        self.initialTile = None
         self.rightEnd = -1
-        self.rightLocation = 0
-        self.leftLocation = 0
+        self.rightPlayDirection = "right"
+        self.rightWrapFlag = False
         self.leftEnd = -1
+        self.leftPlayDirection = "left"
+        self.leftWrapFlag = False
         self.playedDominoes = []
+        self.rightBound = constants.WIDTH - constants.TILE_WIDTH*6
+        self.leftBound = constants.TILE_WIDTH*6
+        self.lastPlay = None
 
     def getEnds(self): #Returns the ends as a tuple
         return (self.leftEnd, self.rightEnd)
     
+    def placeDomino(self, side: str, domino: Domino): #This willplace a domino in the specified direction in relation to the provided location
+        if side == "left":
+            lastDomino: Domino = self.playedDominoes[0]
+            direction: str = self.leftPlayDirection
+            self.playedDominoes.insert(0, domino)
 
-    def play(self, domino, side):
+            if (lastDomino.rect.centerx < self.leftBound) and (not lastDomino.isDouble()) and (not self.leftWrapFlag) :
+                self.leftPlayDirection = "down"
+
+            if domino.leftValue == self.leftEnd:
+                self.leftEnd = domino.rightValue
+                domino.rotate(180)
+            else:
+                self.leftEnd = domino.leftValue
+        else:
+            lastDomino: Domino = self.playedDominoes[-1]
+            direction: str = self.rightPlayDirection
+            self.playedDominoes.append(domino)
+
+            if (lastDomino.rect.centerx > self.rightBound) and (not lastDomino.isDouble()) and (not self.rightWrapFlag):
+                self.rightPlayDirection = "up"
+
+            if domino.rightValue == self.rightEnd:
+                self.rightEnd = domino.leftValue
+                domino.rotate(180)
+            else:
+                self.rightEnd = domino.rightValue
+
+
+        if direction == "left":
+            if (not domino.isDouble()) and (not lastDomino.isDouble()):
+                offset = constants.TILE_HEIGHT
+            else:
+                offset = constants.TILE_WIDTH * 1.5
+            
+            if not domino.isDouble():
+                domino.rotate(90)
+
+            coords: tuple = (lastDomino.rect.centerx - (offset), lastDomino.rect.centery)
+            domino.move(coords)
+            if side == "right":
+                domino.rotate(180)
+
+        elif direction == "right":
+            if (not domino.isDouble()) and (not lastDomino.isDouble()):
+                offset = constants.TILE_HEIGHT
+            else:
+                offset = constants.TILE_WIDTH * 1.5
+            
+            if not domino.isDouble():
+                domino.rotate(90)
+
+            coords: tuple = (lastDomino.rect.centerx + (offset), lastDomino.rect.centery)
+            domino.move(coords)
+            if side == "left":
+                domino.rotate(180)
+            
+            pass
+
+        elif direction == "up":
+            if self.rightWrapFlag:
+                offsetX = constants.TILE_WIDTH / 2
+                offsetY = constants.TILE_WIDTH * 1.5
+
+                coords: tuple = (lastDomino.rect.centerx - offsetX, lastDomino.rect.centery - offsetY)
+                domino.rotate(270)
+                domino.move(coords)
+                self.rightPlayDirection = "left"
+                pass
+            else:
+                offsetX = constants.TILE_WIDTH / 2
+                offsetY = constants.TILE_WIDTH * 1.5
+                coords = (lastDomino.rect.centerx + offsetX, lastDomino.rect.centery - offsetY)
+                domino.rotate(180)
+                domino.move(coords)
+                self.rightWrapFlag = True
+            pass
+            pass
+        elif direction == "down":
+            if self.leftWrapFlag:
+                offsetX = constants.TILE_WIDTH / 2
+                offsetY = constants.TILE_WIDTH * 1.5
+
+                coords: tuple = (lastDomino.rect.centerx + offsetX, lastDomino.rect.centery + offsetY)
+                domino.rotate(270)
+                domino.move(coords)
+                self.leftPlayDirection = "right"
+                pass
+            else:
+                offsetX = constants.TILE_WIDTH / 2
+                offsetY = constants.TILE_WIDTH * 1.5
+                coords = (lastDomino.rect.centerx - offsetX, lastDomino.rect.centery + offsetY)
+                domino.rotate(180)
+                domino.move(coords)
+                self.leftWrapFlag = True
+            pass
+
+        
+    def play(self, domino: Domino, side: str='left'):
         # Play the first tile of the game
-        if self.initialTile is None:
-            center_x = constants.WIDTH / 2
-            center_y = constants.HEIGHT / 2
+        if len(self.playedDominoes) == 0:
 
-            domino.move((center_x, center_y))
+            domino.move((constants.WIDTH / 2, constants.HEIGHT / 2))
             
             # Set locations based on whether the domino is a double or not
-            if domino.isDouble():
-                self.leftLocation = (center_x - 25, center_y)
-                self.rightLocation = (center_x + 25, center_y)
-            else:
+            if not domino.isDouble():
                 domino.rotate(90)  # Rotate if not a double
-                self.leftLocation = (center_x - 50, center_y)
-                self.rightLocation = (center_x + 50, center_y)
-
+            
             self.leftEnd = domino.leftValue
             self.rightEnd = domino.rightValue
             self.playedDominoes.append(domino)
-            self.initialTile = domino
+            self.lastPlay = domino #Save this as the most recent domino played
             return  # End the function after playing the first tile
-
-        # Handle playing on the left side
-        if side == "left":
-            if domino.isDouble():
-                self.leftLocation = (self.leftLocation[0] - 25, self.leftLocation[1])
-            else:
-                self.leftLocation = (self.leftLocation[0] - 50, self.leftLocation[1])
-                # Rotate domino based on left end
-                if domino.leftValue == self.leftEnd:
-                    domino.rotate(-90)
-                    self.leftEnd = domino.rightValue
-                else:
-                    domino.rotate(90)
-                    self.leftEnd = domino.leftValue
-
-            domino.move(self.leftLocation)
-            if domino.isDouble():
-                self.leftLocation = (self.leftLocation[0] - 25, self.leftLocation[1])
-            else:
-                self.leftLocation = (self.leftLocation[0] - 50, self.leftLocation[1])
-            self.playedDominoes.append(domino)
-
-        # Handle playing on the right side
-        elif side == "right":
-            if domino.isDouble():
-                self.rightLocation = (self.rightLocation[0] + 25, self.rightLocation[1])
-            else:
-                self.rightLocation = (self.rightLocation[0] + 50, self.rightLocation[1])
-                # Rotate domino based on right end
-                if domino.leftValue == self.rightEnd:
-                    domino.rotate(90)
-                    self.rightEnd = domino.rightValue
-                else:
-                    domino.rotate(-90)
-                    self.rightEnd = domino.leftValue
-
-            domino.move(self.rightLocation)
-            if domino.isDouble():
-                self.rightLocation = (self.rightLocation[0] + 25, self.rightLocation[1])
-            else:
-                self.rightLocation = (self.rightLocation[0] + 50, self.rightLocation[1])
-
-            self.playedDominoes.append(domino)
+        
+        else:
+            # Handle playing on the left side
+            self.placeDomino(side, domino)
     
 
     def blitSnake(self, WINDOW):

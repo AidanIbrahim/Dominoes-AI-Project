@@ -2,7 +2,7 @@ import pygame
 import constants
 
 class Domino:
-    def __init__(self, values, position=(0, 0)):
+    def __init__(self, values, position=(200, 200)):
         self.leftValue = values[0] #Initialize values
         self.rightValue = values[1]
         self.score = self.leftValue + self.rightValue
@@ -14,7 +14,6 @@ class Domino:
         self.image = pygame.transform.scale(self.image, (constants.TILE_WIDTH, constants.TILE_HEIGHT))
         self.rect = self.image.get_rect(center=self.position)  # Store the rectangle for collision checks
         
-
         self.isSelected = False #This determines if the domino is selected
 
     def isDouble(self): #Returns true if the domino is a double
@@ -48,7 +47,7 @@ class Domino:
         """
         self.rotation = (self.rotation + angle) % 360  # Keep rotation between 0-360
         self.image = pygame.transform.rotate(self.image, angle)
-
+        
     def blit(self, screen):
         """
         Draw the domino on the screen at its current position and rotation.
@@ -65,12 +64,3 @@ class Domino:
         self.rect.center = self.position #Move the collison detection
 
 
-    def check_edge(self, screen_width, screen_height):
-        """
-        Check if the domino is near the edge of the screen. If it is, rotate it.
-        This logic can be expanded to handle more complex movement or rotation.
-        """
-        if self.position[0] < 50 or self.position[0] > screen_width - 50:
-            self.rotate(90)
-        if self.position[1] < 50 or self.position[1] > screen_height - 50:
-            self.rotate(90)

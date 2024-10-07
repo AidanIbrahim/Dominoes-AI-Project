@@ -1,15 +1,64 @@
 import pygame
+import pandas
+import os
+import time
 from snake import Snake
 from game import Game
 from domino import Domino
 import constants
 
-def main():
+def main(): #This will run simulated matchups
     # Initialize Pygame
     pygame.init()
+    WINDOW = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
+    winRates = [] #This will be the output data to send to excel
+    startTime = time.time()
+
+    xIndex = 0
+    yIndex = 0
+
+    for player1 in constants.ALL_AIS:
+        winRatesY = []
+        for player2 in constants.ALL_AIS:
+
+            player1wins = 0
+            player2wins = 0
+            totalGames = 0
+            draws = 0
+            for i in range(constants.SIM_NUM):
+                result = playHand(player1, player2, WINDOW)
+                if result > 0:
+                    player1wins += 1
+                    totalGames += 1
+                elif result < 1:
+                    player2wins += 1
+                    totalGames += 1
+                else:
+                    draws == 0
+                    totalGames += 1
+            winRatesY.append(player1wins/totalGames)
+            yIndex += 1
+        winRates.append(winRatesY)
+        xIndex += 1
+
+    end_time = time.time()
+    elapsed_time = end_time - startTime  # Calculate elapsed time
+    print(f"Elapsed time: {elapsed_time:.2f} seconds")  # Print elapsed time
+    
+
+    #Export winsrates to excel 
+    if constants.EXPORT:
+        df = pandas.DataFrame(winRates, index=constants.ALL_AIS, columns=constants.ALL_AIS)
+
+        df.to_excel(os.path.join(constants.EXPORT_LOCATION), sheet_name='Winrates')
+        print("Data exported to excel")
+
+    pygame.quit()
+
+
+def playHand(Player1, Player2, WINDOW):
 
     # Set up display dimensions
-    WINDOW = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
     programIcon = pygame.image.load('Art/Icon.jpg')
     pygame.display.set_icon(programIcon)
     pygame.display.set_caption("Dominoes")
@@ -17,11 +66,11 @@ def main():
 
     # Main game loop
     running = True
-    newGame = Game("Player", "RandomMoves")
+    newGame = Game(Player1, Player2)
     selectedDomino = None
 
     while running:  # The gameplay loop, this manages all the events that happen during play
-        clock.tick(constants.FPS)
+        #clock.tick(constants.FPS)
 
         # Displays graphics
         WINDOW.fill((255, 255, 255))  # Draw screen
@@ -43,17 +92,27 @@ def main():
         if currPlay is not None:
             newGame.currSnake.play(currPlay[0], currPlay[1])
             if len(newGame.getCurrPlayer().dominoHand) == 0:  # Check for win
-                display_winner_message("Player " + str(newGame.currPlayer + 1) + " Wins", WINDOW)  # Call the display function here
-                newGame = Game()
+                if newGame.currPlayer == 0:
+                    return newGame.players[1].getHandScore()
+                else:
+                    return newGame.players[0].getHandScore() * -1
+
             newGame.advanceTurn()
             currPlay = None
 
 
-        if newGame.getLegalMoves() == []:
-            if newGame.draw():
+        while newGame.getLegalMoves() == []:
+            canDraw = newGame.draw()
+            if not canDraw:
+                newGame.advanceTurn()
                 if newGame.getLegalMoves() == []:
-                    display_winner_message("Game Locked", WINDOW)  # Call the display function here
-                newGame = Game("Player", "RandomMoves")
+                    
+                    if newGame.players[0].getHandScore() > newGame.players[1].getHandScore():
+                        return newGame.players[1].getHandScore()
+                    elif newGame.players[1].getHandScore() > newGame.players[0].getHandScore():
+                        return newGame.players[0].getHandScore() * -1
+                    else:
+                        return 0
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -63,24 +122,6 @@ def main():
 
     # Quit Pygame
     pygame.quit()
-
-def display_winner_message(winner_text, WINDOW):
-    # Render the winner text
-    font = pygame.font.Font(None, 74)
-    text_surface = font.render(winner_text, True, (0, 255, 0))  # White color
-    text_rect = text_surface.get_rect(center=(constants.WIDTH/2, constants.HEIGHT/2))  # Centering it on the screen
-
-    # Fill the screen with a background color
-    WINDOW.fill((0, 0, 0))  # Black background
-
-    # Blit the text surface onto the screen
-    WINDOW.blit(text_surface, text_rect)
-
-    # Update the display
-    pygame.display.flip()
-
-    # Wait for a few seconds before exiting
-    pygame.time.delay(3000)  # Display for 3 seconds
 
 if __name__ == "__main__":
     main()

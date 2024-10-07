@@ -6,7 +6,7 @@ from snake import Snake
 
 class Player: #The generic player class, this one accepts human input
 
-    def __init__(self, playerPos):
+    def __init__(self, playerPos: tuple):
         self.dominoHand = []
         if playerPos == 1:
             self.HAND_Y = constants.HEIGHT - (constants.TILE_HEIGHT)
@@ -15,7 +15,7 @@ class Player: #The generic player class, this one accepts human input
 
         self.selectedDomino = None
 
-    def checkHover(self, mouse_pos):
+    def checkHover(self, mouse_pos: tuple):
         # Check if mouse is hovering over any domino in player's hand
         for domino in self.dominoHand:
             if domino.rect.collidepoint(mouse_pos):
@@ -26,15 +26,15 @@ class Player: #The generic player class, this one accepts human input
         
         return None
 
-    def select(self, domino):
+    def select(self, domino:tuple):
         domino.isSelected = True
         pass
 
-    def deselect(self, domino):
+    def deselect(self, domino: Domino):
         domino.isSelected = False
         pass
 
-    def takeTurn(self, values): #This handles the turn of a human player
+    def takeTurn(self, values: tuple): #This handles the turn of a human player
 
         # Handle mouse hovering and selection within the turn
         selectedSide = None
@@ -69,10 +69,11 @@ class Player: #The generic player class, this one accepts human input
     def draw(self, domino):
         if domino is not None:
             self.dominoHand.append(domino)
+            return True
         else:
             return False
 
-    def play(self, domino, side):
+    def play(self, domino: Domino, side: str='left'):
         dominoIndex = self.getHandIndex(domino.leftValue, domino.rightValue)
         if dominoIndex is not None:
             returnDomino = self.dominoHand.pop(dominoIndex)
@@ -90,7 +91,16 @@ class Player: #The generic player class, this one accepts human input
                 legalMoves.append((domino, "right"))
         return legalMoves
 
-    def getHandIndex(self, leftVal, rightVal):
+    def getHand(self):
+        return self.dominoHand
+
+    def getHandScore(self):
+        score = 0
+        for domino in self.dominoHand:
+            score += domino.getScore()
+        return score
+
+    def getHandIndex(self, leftVal: int, rightVal: int):
         for index, domino in enumerate(self.dominoHand):
             if domino.leftValue == leftVal and domino.rightValue == rightVal:
                 return index
@@ -111,4 +121,6 @@ class Player: #The generic player class, this one accepts human input
                 domino.move((handStart + offset, self.HAND_Y))
 
             domino.blit(WINDOW)
-            offset += constants.TILE_WIDTH*1.5      
+            offset += constants.TILE_WIDTH*1.5
+
+
