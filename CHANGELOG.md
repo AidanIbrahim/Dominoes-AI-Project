@@ -5,6 +5,8 @@
   - Fix graphical bugs when dominos change directions on the snake
   - Add Chuchazo and Capicú special wins
   - Implement a more "rational" agent that makes decisons based on more than just its own hand
+  - Add a "hidden" mode to allow a human player to play a bot without seeing the dominoes in their hand
+  - UI improvements
 
 
 ## [1.0.0] - 2024-10-07
