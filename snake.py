@@ -2,20 +2,27 @@ import pygame
 import constants
 from domino import Domino
 
-
+""""
+Aidan Ibrahim - 2024
+This snake class handles the representation of the played dominos in the center of the board, as well as stores what dominos have been played
+"""
 
 class Snake:
     def __init__(self):
-        self.rightEnd = -1
+        self.rightEnd = -1 #Right side variables
         self.rightPlayDirection = "right"
         self.rightWrapFlag = False
-        self.leftEnd = -1
+
+        self.leftEnd = -1 #Left side variables
         self.leftPlayDirection = "left"
         self.leftWrapFlag = False
-        self.playedDominoes = []
-        self.rightBound = constants.WIDTH - constants.TILE_WIDTH*6
+
+        self.playedDominoes = [] #This will hold the dominoes played from left to right
+
+        self.rightBound = constants.WIDTH - constants.TILE_WIDTH*6 #bounds for when to switch snake directions, scales with domino size
         self.leftBound = constants.TILE_WIDTH*6
-        self.lastPlay = None
+
+        self.lastPlay = None #Most recently played domino
 
     def getEnds(self): #Returns the ends as a tuple
         return (self.leftEnd, self.rightEnd)
@@ -76,8 +83,6 @@ class Snake:
             domino.move(coords)
             if side == "left":
                 domino.rotate(180)
-            
-            pass
 
         elif direction == "up":
             if self.rightWrapFlag:
@@ -116,8 +121,7 @@ class Snake:
                 domino.move(coords)
                 self.leftWrapFlag = True
             pass
-
-        
+     
     def play(self, domino: Domino, side: str='left'):
         # Play the first tile of the game
         if len(self.playedDominoes) == 0:
@@ -138,13 +142,7 @@ class Snake:
             # Handle playing on the left side
             self.placeDomino(side, domino)
     
+    def getLastPlay(self) -> Domino:
+        return self.lastPlay
 
-    def blitSnake(self, WINDOW):
-        for domino in self.playedDominoes:
-            domino.blit(WINDOW)
 
-        pass
-
-            
-            
-        

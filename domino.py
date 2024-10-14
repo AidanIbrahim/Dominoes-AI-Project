@@ -2,12 +2,11 @@ import pygame
 import constants
 
 class Domino:
-    def __init__(self, values, position=(200, 200)):
+    def __init__(self, values, position=(constants.TILE_WIDTH, constants.TILE_WIDTH*2)):
         self.leftValue = values[0] #Initialize values
         self.rightValue = values[1]
-        self.score = self.leftValue + self.rightValue
 
-        self.position = position
+        self.position = position #xy position
         self.rotation = 0  # Rotation angle, starts at 0 degrees
 
         self.image = self.load_image() #Initalize graphics
@@ -16,7 +15,7 @@ class Domino:
         
         self.isSelected = False #This determines if the domino is selected
 
-    def isDouble(self): #Returns true if the domino is a double
+    def isDouble(self) -> bool: #Returns true if the domino is a double
         if self.leftValue == self.rightValue:
             return True
         else:
@@ -28,17 +27,14 @@ class Domino:
     def deselect(self):
         self.isSelected = False
 
-
-    def getScore(self): #Returns the score of the domino
-        return self.score
-
-    def load_image(self):
-        """
-        Load the domino image based on the values of the left and right sides.
-        You can generate filenames dynamically based on the values.
-        """
-        file_name = f"Art/Domino{self.leftValue}_{self.rightValue}.png"
-        return pygame.image.load(file_name)
+    def load_image(self): #Loads the face down image
+        fileName = f"Art/DominoBack.png"
+        return pygame.image.load(fileName)
+    
+    def reveal(self): #Loads the face up image
+        fileName = f"Art/Domino{self.leftValue}_{self.rightValue}.png"
+        self.image = pygame.image.load(fileName)
+        self.image = pygame.transform.scale(self.image, (constants.TILE_WIDTH, constants.TILE_HEIGHT))
 
     def rotate(self, angle):
         """

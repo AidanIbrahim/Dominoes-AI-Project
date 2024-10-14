@@ -3,9 +3,21 @@
 
 ##Current Goals
   - Fix graphical bugs when dominos change directions on the snake
-  - Add Chuchazo and Capicú special wins
-  - Implement a more "rational" agent that makes decisons based on more than just its own hand
+  - Reimplement scoring
+  - Reimplement excel data export
+  - Reimplement random move and highest move
+  - Reimplement human input
+  - Look into rules based AI agent and Monte Carlo Search
 
+
+## [2.0.0] - 2024-10-14
+- Complete refactor
+- Way more readable and almost 250x faster game simulation speed
+- Added headless mode, allowing the simulations to run without pygame render
+- Separated graphics and logic completely
+- Need to reimplement features that existed such as scoring, excel export, and AI child classes
+- game.py was replaced with GameManager.py
+- Added GraphicsManager.py to handle pygame screen and render
 
 ## [1.0.0] - 2024-10-07
 - Added domino wrapping feature to prevent them from leaving the screen bounds

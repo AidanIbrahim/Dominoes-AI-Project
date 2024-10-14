@@ -2,126 +2,53 @@ import pygame
 import pandas
 import os
 import time
+import sys
 from snake import Snake
-from game import Game
 from domino import Domino
 import constants
+from GameManager import GameManager
+from GraphicsManager import GraphicsManager
 
-def main(): #This will run simulated matchups
-    # Initialize Pygame
-    pygame.init()
-    WINDOW = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
-    winRates = [] #This will be the output data to send to excel
-    startTime = time.time()
+def main(): #Initiate the game according to the specified settings\
 
-    xIndex = 0
-    yIndex = 0
 
-    for player1 in constants.ALL_AIS:
-        winRatesY = []
-        for player2 in constants.ALL_AIS:
+    if constants.HEADLESS_MODE: #No graphics, sheer speed only
+        progress: float = 0.0
+        startTime = time.time()
+        for i in range(constants.SIM_NUM):
+            game = GameManager()
+            progress = (i / constants.SIM_NUM)*100
+            print(f"\rProgress: {progress:.2f}%", end="")
+            sys.stdout.flush()  # Flush the output to update the lin
+            while not game.gameEnd:
+                game.turn()
+        print('\n')
+        endTime = time.time()
+        elapsedTime = endTime - startTime
+        print(f"Elapsed time: {elapsedTime:.3f} seconds")  # Print elapsed time
+    else: 
+        game = GameManager()
+        GUI = GraphicsManager(game)
+        GUI.runWindow()
 
-            player1wins = 0
-            player2wins = 0
-            totalGames = 0
-            draws = 0
-            for i in range(constants.SIM_NUM):
-                result = playHand(player1, player2, WINDOW)
-                if result > 0:
-                    player1wins += 1
-                    totalGames += 1
-                elif result < 1:
-                    player2wins += 1
-                    totalGames += 1
-                else:
-                    draws == 0
-                    totalGames += 1
-            winRatesY.append(player1wins/totalGames)
-            yIndex += 1
-        winRates.append(winRatesY)
-        xIndex += 1
+ 
+def exportData(winrateData, scoreData): #Format and create Excel Spreadsheet with game results, takes a 2D map
+    print("Exporting to excel...")
+    vertFrame = []
+    horiFrame = []
 
-    end_time = time.time()
-    elapsed_time = end_time - startTime  # Calculate elapsed time
-    print(f"Elapsed time: {elapsed_time:.2f} seconds")  # Print elapsed time
-    
+    for i in constants.ALL_AIS: #Specify player 1 or two
+        vertFrame.append(i + " P1")
+        horiFrame.append(i + " P2")
 
-    #Export winsrates to excel 
-    if constants.EXPORT:
-        df = pandas.DataFrame(winRates, index=constants.ALL_AIS, columns=constants.ALL_AIS)
+    winRates = pandas.DataFrame(winrateData, index=vertFrame, columns=horiFrame)
+    scores = pandas.DataFrame(scoreData, index=vertFrame, columns=horiFrame)
 
-        df.to_excel(os.path.join(constants.EXPORT_LOCATION), sheet_name='Winrates')
+    with pandas.ExcelWriter(os.path.join(constants.EXPORT_LOCATION)) as writer:
+        winRates.to_excel(writer, sheet_name='Winrate')
+        scores.to_excel(writer, sheet_name='Score Difference')
         print("Data exported to excel")
 
-    pygame.quit()
-
-
-def playHand(Player1, Player2, WINDOW):
-
-    # Set up display dimensions
-    programIcon = pygame.image.load('Art/Icon.jpg')
-    pygame.display.set_icon(programIcon)
-    pygame.display.set_caption("Dominoes")
-    clock = pygame.time.Clock()
-
-    # Main game loop
-    running = True
-    newGame = Game(Player1, Player2)
-    selectedDomino = None
-
-    while running:  # The gameplay loop, this manages all the events that happen during play
-        #clock.tick(constants.FPS)
-
-        # Displays graphics
-        WINDOW.fill((255, 255, 255))  # Draw screen
-        newGame.players[0].blitHand(WINDOW)
-        newGame.players[1].blitHand(WINDOW)
-        newGame.currSnake.blitSnake(WINDOW)
-
-        # This circle shows who's turn it is
-        if newGame.currPlayer == 0:
-            circle_color = (0, 0, 255)  # Blue color
-            circle_center = (50, constants.HEIGHT - (constants.TILE_HEIGHT))
-        else:
-            circle_color = (255, 0, 0)  # Red color
-            circle_center = (50, 75)  # Center of the screen
-        circle_radius = 25  # Radius of the circle
-        pygame.draw.circle(WINDOW, circle_color, circle_center, circle_radius)
-
-        currPlay = newGame.getCurrPlayer().takeTurn(newGame.getEnds())
-        if currPlay is not None:
-            newGame.currSnake.play(currPlay[0], currPlay[1])
-            if len(newGame.getCurrPlayer().dominoHand) == 0:  # Check for win
-                if newGame.currPlayer == 0:
-                    return newGame.players[1].getHandScore()
-                else:
-                    return newGame.players[0].getHandScore() * -1
-
-            newGame.advanceTurn()
-            currPlay = None
-
-
-        while newGame.getLegalMoves() == []:
-            canDraw = newGame.draw()
-            if not canDraw:
-                newGame.advanceTurn()
-                if newGame.getLegalMoves() == []:
-                    
-                    if newGame.players[0].getHandScore() > newGame.players[1].getHandScore():
-                        return newGame.players[1].getHandScore()
-                    elif newGame.players[1].getHandScore() > newGame.players[0].getHandScore():
-                        return newGame.players[0].getHandScore() * -1
-                    else:
-                        return 0
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        pygame.display.flip()
-
-    # Quit Pygame
-    pygame.quit()
 
 if __name__ == "__main__":
     main()

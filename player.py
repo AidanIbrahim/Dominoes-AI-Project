@@ -1,126 +1,56 @@
 import pygame
 import constants
-from domino import Domino
-from snake import Snake
 
+class Player: #The generic player class, all types will stem from this one
 
-class Player: #The generic player class, this one accepts human input
+    def __init__(self, ID): #initializes member variables
+        self.hand: list = []
+        self.ID = ID
+        self.game = ""
+        self.legalMoves = []
 
-    def __init__(self, playerPos: tuple):
-        self.dominoHand = []
-        if playerPos == 1:
-            self.HAND_Y = constants.HEIGHT - (constants.TILE_HEIGHT)
-        elif playerPos == 2:
-            self.HAND_Y = 75
+    
+    def addToHand(self, toAdd: tuple): #Adds a domino to player hand
+        self.hand.append(toAdd)
 
-        self.selectedDomino = None
+    def removeFromHand(self, toRemove: tuple): #removes a domino to hand, and returns a bool on if the domino was found and removed
+        for i, domino in enumerate(self.hand):
+            if domino == toRemove:
+                self.hand.pop(i)
+                return True
+        return False
 
-    def checkHover(self, mouse_pos: tuple):
-        # Check if mouse is hovering over any domino in player's hand
-        for domino in self.dominoHand:
-            if domino.rect.collidepoint(mouse_pos):
-                self.select(domino)  # Method to visually indicate hover
-                return domino
-            else:
-                self.deselect(domino)
-        
-        return None
+    def getHand(self) -> list[tuple]: #Returns the player hand
+        return self.hand
+    
+    def getLegalMoves(self) -> list[str]: #This will return the current legal moves
+        return self.legalMoves
 
-    def select(self, domino:tuple):
-        domino.isSelected = True
-        pass
+    def setLegalMoves(self, legalMoves: list[str]): #This will set the legal moves for the player
+        self.legalMoves = legalMoves
 
-    def deselect(self, domino: Domino):
-        domino.isSelected = False
-        pass
+    def unpackMove(self, move) -> tuple: #This function returns the move as a tuple (str, int, int)
+        return (move[0], int(move[1]), int(move[2]))
+    
+    def playUpdate(self, move): #Updates hand when a move is played
+        domino = self.unpackMove(move) #Makes move into a tuple. Standard format LXX
+        self.removeFromHand((domino[1], domino[2])) #Get the integer portion of the unpacked move
 
-    def takeTurn(self, values: tuple): #This handles the turn of a human player
-
-        # Handle mouse hovering and selection within the turn
-        selectedSide = None
-        selectedDomino = None
-        leftEnd = values[0]
-        rightEnd = values[1]
-
-        for event in pygame.event.get():
-
-            if event.type == pygame.QUIT:
-                pygame.quit()  # Cleanly exit Pygame
-                exit()  # Exit the program
-
-
-            selectedDomino = self.checkHover(pygame.mouse.get_pos())
-
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:  #A key
-                    selectedSide = "left"
-                if event.key == pygame.K_d:  #D key
-                    selectedSide = "right"
-
-                # Logic to play the selected domino
-                if selectedDomino is not None and selectedSide is not None:
-                    if (selectedDomino ,selectedSide) in self.getLegalMoves(values):
-                        return self.play(selectedDomino, selectedSide)
-                    
-        return None  # Turn is still ongoing
-
-
-    def draw(self, domino):
-        if domino is not None:
-            self.dominoHand.append(domino)
-            return True
+    def play(self, gameState: str, legalMoves: list[tuple]) -> str: #Handle move logic, and return move 
+        self.setLegalMoves(legalMoves)
+        if len(legalMoves) == 0: #Check for no legal moves and return pass code
+            return constants.PASS 
         else:
-            return False
+            move = self.legalMoves[0] #The chosen move to play
+            self.playUpdate(move)
+            return move #Just play the first legal move, This function is meant to be overloaded for each class
 
-    def play(self, domino: Domino, side: str='left'):
-        dominoIndex = self.getHandIndex(domino.leftValue, domino.rightValue)
-        if dominoIndex is not None:
-            returnDomino = self.dominoHand.pop(dominoIndex)
-            return (returnDomino, side)
-        return domino
-        
-
-    def getLegalMoves(self, values):
-        legalMoves = []
-
-        for domino in self.dominoHand:
-            if domino.leftValue == values[0] or domino.rightValue == values[0] or values[0] == -1:
-                legalMoves.append((domino, "left"))
-            if domino.leftValue == values[1] or domino.rightValue == values[1] or values[1] == -1:
-                legalMoves.append((domino, "right"))
-        return legalMoves
-
-    def getHand(self):
-        return self.dominoHand
-
-    def getHandScore(self):
+    def getHandScore(self) -> int: #Returns the remaining score of the hand
         score = 0
-        for domino in self.dominoHand:
-            score += domino.getScore()
+        for domino in self.hand:
+            score += domino[0] + domino[1]
         return score
 
-    def getHandIndex(self, leftVal: int, rightVal: int):
-        for index, domino in enumerate(self.dominoHand):
-            if domino.leftValue == leftVal and domino.rightValue == rightVal:
-                return index
-                
-
-        return None
-
-    def blitHand(self, WINDOW):
-        totalWidth = (constants.TILE_WIDTH * 1.5 * len(self.dominoHand)) - (constants.TILE_WIDTH * 1.5)  # minus the last spacing
-
-        handStart = (constants.WIDTH / 2) - (totalWidth / 2)
-
-        offset = 0
-        for domino in self.dominoHand:
-            if domino.isSelected:
-                domino.move((handStart + offset, self.HAND_Y - 25))
-            else:
-                domino.move((handStart + offset, self.HAND_Y))
-
-            domino.blit(WINDOW)
-            offset += constants.TILE_WIDTH*1.5
 
 
+    
