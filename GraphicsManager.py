@@ -1,7 +1,7 @@
 import pygame
 import constants
 from domino import Domino
-from player import Player
+from AIs.player import Player
 from snake import Snake
 from GameManager import GameManager
 
@@ -73,6 +73,7 @@ class GraphicsManager: #This class handles placing the dominoes on screen as wel
                 if event.type == pygame.QUIT:
                     running = False
             self.game.turn()
+            print(self.game.gameState)
             if self.game.gameEnd:
                 running = False
             
@@ -85,7 +86,6 @@ class GraphicsManager: #This class handles placing the dominoes on screen as wel
     def updatePlayerHands(self): #This function will move the dominoes in the player's hands to the required locations
         self.handP1 = self.game.getPlayer(1).getHand()
         self.handP2 = self.game.getPlayer(2).getHand()
-        print(self.game.gameState)
         print("P1: " + str(self.game.getPlayer(1).getHand()))
         print("P2: " + str(self.game.getPlayer(2).getHand()))
 

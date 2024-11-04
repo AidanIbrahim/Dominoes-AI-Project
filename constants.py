@@ -4,7 +4,7 @@ Aidan Ibrahim - 2024
 This file constains the settings for the project, as well as other data for the other files ot refer too
 """
 
-HEADLESS_MODE = False #With headless mode enabled, the game will run without graphics. This does not allow for human players. Useful for quicker sims
+HEADLESS_MODE = True #With headless mode enabled, the game will run without graphics. This does not allow for human players. Useful for quicker sims
 
 WIDTH, HEIGHT = 1366, 768 #Window Dimensions
 TILE_WIDTH = 50 #Domino dimensions
@@ -12,7 +12,7 @@ TILE_HEIGHT = TILE_WIDTH * 2
 P1_HANDY = HEIGHT - TILE_HEIGHT
 P2_HANDY = TILE_HEIGHT
 
-FPS = 30 #Game framerate
+FPS = 1 #Game framerate
 
 ALL_DOMINOES = [ #All dominoes in the game 
     (0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6),
@@ -33,12 +33,15 @@ PLAYER_COUNT = 2 #Number of players in game, should always be 2 for now
 
 HUMAN_PLAYER = False #Will make a human player if set to true, else run matches between AI opponents
 
-ALL_AIS = ["RandomMoves", "HighestFirst"] #List of all AI types to use in sims
+SIM_LIST = ["RandomMoves", "HighestFirst", "CommonSuit", "Eval"] #List of all AI types to use in sims
 
-AI_LIST = ["Player", "RandomMoves", "HighestFirst"] #List of every player type in the program for copy pasting
+AI_LIST = ["Player", "RandomMoves", "HighestFirst", "CommonSuit", "Eval"] #List of every player type in the program for copy pasting
 
-SIM_NUM = 1000000 #The number of matches per matchup
+#Win Types
+WIN, DRAW, CAPICU, CHUCHAZO = "Win", "Drw", "Cap", "Cha"
+
+SIM_NUM = 1000 #The number of matches per matchup
 
 EXPORT = True
 
-EXPORT_LOCATION = "Data/SimulationResults.xlsx"
+EXPORT_LOCATION = "Data/SimulationResults" + str(SIM_NUM) + ".xlsx"

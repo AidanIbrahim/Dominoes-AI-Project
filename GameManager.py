@@ -2,7 +2,7 @@ from collections import deque
 import random
 import copy
 import constants
-from player import Player
+from AIs import Player, createPlayer
 
 
 """
@@ -10,6 +10,7 @@ This class handles the logic of the game, and handles game states, and players.
 
 Serealization key 
 Game State: PlayerTurn:LastPlayerDrawAmount:LastMove:Player1HandSize:Player2HandSize:LeftNum:RightNum:CurrentPlayed(LtoR)
+Victory State: ID:WINTYPE:SCORE:P1HAND:P2HAND
 Example: 1:02:L23:05:08:3:5:2334442445
 Move: SideDomino
 Example: L23, R23, F23, PPP (Pass)
@@ -17,14 +18,18 @@ Example: L23, R23, F23, PPP (Pass)
 class GameManager:
 
 
-    def __init__(self, P1="Player", P2="Player"): #Initialize class variables
+    def __init__(self, P1, P2, forcePlayerTypes= False): #Initialize class variables
         self.drawPile: deque = self.makeDrawPile() #A list of 28 tuples representing the dominoes in a random order
 
         self.playedDominos: list = [] #A list of tuples that will represent the played dominos from L->R
         self.lastMove: str = "XXX"   #The last move played, mostly used for special win checks
         self.lastDrawAmount: int = 0      #The amount of dominoes drawn on the previous turn
 
-        self.players: list = self.createPlayers(P1, P2) #A list containing the players of the specified types
+        if forcePlayerTypes: #This flag will force the type of AI for the game, used by AI trainer
+            self.players: list = [P1, P2]
+        else:
+            self.players: list[Player] = self.createPlayers(P1, P2) #A list containing the players of the specified types
+
         self.currentPlayer: Player = self.getPlayer(1) #The player who's turn it currently is
         self.currPIndex = -1 #The index of the player whos turn it is, this placeholder will be reassigned later
 
@@ -37,26 +42,30 @@ class GameManager:
         self.lockedFlag = False
         self.gameEnd: bool = False
 
+    def playHand(self):
+        while not self.gameEnd:
+            self.turn()
+        return self.gameState
+
     def encodeSnake(self) -> str:
         encoded: str = ""
-
+        counter = 0
         for domino in self.playedDominos:
             encoded += str(domino[0]) + str(domino[1])
-
         return encoded
 
     def encodeGameState(self):
-        gameState: str = str(self.currPIndex + 1) + ':' #One indexed player ID
-        gameState += str(self.lastDrawAmount) + ':' #Amount drawn last turn
-        gameState += self.lastMove + ':' #Most recent move
-        gameState += str(len(self.getPlayer(1).getHand())) + ':' #Player 1 hand size
-        gameState += str(len(self.getPlayer(2).getHand())) + ':' #Player 2 hand size
-        gameState += str(self.leftEnd) + ':' #Left end
-        gameState += str(self.rightEnd) + ':' #Right end
-        gameState += self.encodeSnake() #Left end
-        self.gameState = gameState
-        pass
-    
+        if not self.gameEnd:
+            gameState: str = str(self.currPIndex + 1) + ':' #One indexed player ID
+            gameState += str(self.lastDrawAmount) + ':' #Amount drawn last turn
+            gameState += self.lastMove + ':' #Most recent move
+            gameState += str(len(self.getPlayer(1).getHand())) + ':' #Player 1 hand size
+            gameState += str(len(self.getPlayer(2).getHand())) + ':' #Player 2 hand size
+            gameState += str(self.leftEnd) + ':' #Left end
+            gameState += str(self.rightEnd) + ':' #Right end
+            gameState += self.encodeSnake() #Left end
+            self.gameState = gameState
+
     def makeDrawPile(self) -> list[tuple]: #This genetates a queue used for the draw pile
         shuffled = copy.deepcopy((constants.ALL_DOMINOES)) #Make a deep copy to avoid modifying constants
         random.shuffle(shuffled)
@@ -67,8 +76,8 @@ class GameManager:
     
     def createPlayers(self, P1: str, P2: str): #this function will create a list of player objects for the game using the specified types WIP
         playerQueue: list[Player]= []
-        playerQueue.append(Player(1)) ###FIX LATER
-        playerQueue.append(Player(2))
+        playerQueue.append(createPlayer(P1)) #Creates the players
+        playerQueue.append(createPlayer(P2))
 
         for i in range(constants.HAND_SIZE): #This will fill their hands with the amount of dominos specified in constants
             for player in playerQueue:
@@ -197,30 +206,63 @@ class GameManager:
             scoreP1 = self.getPlayer(1).getHandScore()
             scoreP2 = self.getPlayer(2).getHandScore()
 
-            if scoreP1 > scoreP2: #Locked P1 Win
-                ###Format Victory states
-                
-                pass
-            elif scoreP1 < scoreP2: #Locked P2 Win
-                
-
-                pass
+            if scoreP1 < scoreP2: #Locked P1 Win
+                self.encodeVictory(1)
+            elif scoreP1 > scoreP2: #Locked P2 Win
+                self.encodeVictory(2)
             else: #True Draw
-
-                pass
+                self.encodeVictory(0)
             self.gameEnd = True
         else:
-            for player in self.players:
+            for i, player in enumerate(self.players):
                 if len(player.getHand()) == 0: #If player has no more dominoes
-                    """
-                    WRITE CODE TO CREATE THE VICTORY GAME STATE
-                    """
+                    self.encodeVictory(i+1) #Make one indexed for readability
                     self.gameEnd = True
                     return #End check
             self.gameEnd = False
     
-    def turn(self): #Handles taking a turn FIX
-        self.checkForWin()
+    def decodeGameState(self, gameState):
+        currString = ""
+        stateList = []
+
+        for char in gameState:
+            if char == ':':
+                stateList.append(currString)
+                currString = ""
+            else:    
+                currString += char
+        stateList.append(currString) #Get final value in the state    
+        
+        return stateList
+
+    def encodeVictory(self, winner):
+        gameState = self.decodeGameState(self.gameState)
+        if winner == 1:
+            score = self.players[1].getHandScore()
+        elif winner == 2:
+            score = self.players[0].getHandScore()
+        else:
+            score = 0
+
+        winType = self.getWinType(gameState, winner)
+
+        if winType == constants.CHUCHAZO or winType == constants.CAPICU: #Add points for special wins
+            score += 100
+            
+        self.gameState = (str(winner) + ':' + winType + ':' + str(score) + ':' + self.players[0].encodeHand() + ':' + self.players[1].encodeHand())
+
+    def getWinType(self, gameState, winner):
+        if winner == 0: #If last move was a pass the game is locked 
+            return constants.DRAW
+        elif gameState[5] == gameState[6]:
+            if gameState[2][1] != gameState[2][1]: #No capicu if a double is the last domino played
+                return constants.CAPICU
+        elif gameState[2] == "L00" or gameState[2] == "R00": #Check for chuchazo
+            if gameState[5] != gameState[6]: #No chuchazo if both sides were blank
+                return constants.CHUCHAZO
+        return constants.WIN
+    
+    def turn(self): #Calls all required functions to do one turn of the game
         self.playMove()
-        self.encodeGameState()
+        self.checkForWin()
         self.advanceTurn()

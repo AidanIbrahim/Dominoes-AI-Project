@@ -1,16 +1,18 @@
+from .player import Player
 from .randMoveAI import randomMoves
 from .highestFirstAI import highestFirst
-from .pseudohandAI import pseudohand
+from .commonSuit import commonSuit
+from .evalAI import eval
 
-AITypes = ["RandomMoves", "HighestFirst"]
+database = {"RandomMoves": randomMoves,
+            "HighestFirst": highestFirst,
+            "CommonSuit": commonSuit,
+            "Eval" : eval}
 
-def makeAI(idString, playerPos, currGame):
-    from game import Game #Lazy import to pass game to AIs
-    if (idString == "RandomMoves"):
-        return randomMoves(playerPos)
-    elif (idString == "HighestFirst"):
-        return highestFirst(playerPos)
-    elif (idString == "Pseudohand"):
-        return pseudohand(playerPos, currGame)
+def createPlayer(idString, weights= None):
+    if weights is None:
+        return database[idString]()
+    else:
+        return database[idString](weights)
 
     
