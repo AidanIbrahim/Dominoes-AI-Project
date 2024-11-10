@@ -3,10 +3,10 @@
 
 ##Current Goals
   - Reimplement human input
-  - Work on looking ahead a few moves to improve Eval AI
-  - Implement an ELO system to compare the bots
-  - Encorperate a better training setup
-  - Look into rules based AI agent and Monte Carlo Search
+  - Work on looking ahead a few moves to improve Eval AI, via minimax
+  - Implement an ELO system to compare the bots in a more general fashion
+  - Optimize training setup
+  - Look into rules Monte Carlo Search and Minimax
 
 ## [2.1.0] - 2024-11-24
 - I wanted to put this out a week ago but I accidentally deleted some files and had to redo some work, learned my lesson. Keep a backup. 
